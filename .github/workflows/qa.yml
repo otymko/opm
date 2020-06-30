@@ -20,12 +20,16 @@ jobs:
       run: opm install coverage && opm install 1testrunner && opm install asserts && opm install 1bdd && opm install notify
     - name: Тесты + покрытие
       run: opm run coverage
+    - name: Расчет версии проекта
+      run: |
+           echo "::set-env name=PROJECT_VERSION::$(cat src/core/Модули/КонстантыOpm.os | grep "ВерсияПродукта = " | sed 's|[^"]*"||' | sed -r 's/".+//' | tr -d '[:space:]')"
     - name: Установка SonarScanner
       uses: warchant/setup-sonar-scanner@v1
     - name: Анализ в SonarQube
-      if: github.event.pull_request.head.repo.full_name == github.event.repository.full_name
+      # if: github.event.pull_request.head.repo.full_name == github.event.repository.full_name
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: sonar-scanner
           -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          -Dsonar.host.url=https://sonar.openbsl.ru/
+          -Dsonar.projectVersion=${{ env.PROJECT_VERSION }}
