@@ -10,7 +10,6 @@ on:
 jobs:
   QA:
     runs-on: ubuntu-latest
-    # if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name
     steps:
     - uses: actions/checkout@v2
     - name: Установка OneScript
@@ -21,3 +20,12 @@ jobs:
       run: opm install coverage && opm install 1testrunner && opm install asserts && opm install 1bdd && opm install notify
     - name: Тесты + покрытие
       run: opm run coverage
+    - name: Установка SonarScanner
+      uses: warchant/setup-sonar-scanner@v1
+    - name: Анализ в SonarQube
+      if: github.event.pull_request.head.repo.full_name == github.event.repository.full_name
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: sonar-scanner
+          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
