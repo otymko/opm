@@ -1,0 +1,35 @@
+name: Проверка качества
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+
+jobs:
+  QA:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name
+    steps:
+    - uses: actions/checkout@v2
+    - name: Установка OneScript
+      uses: otymko/setup-onescript@v1.0
+      with:
+        version: 1.4.0
+    - name: Установка зависимостей
+      run: opm install coverage && opm install 1testrunner && opm install asserts && opm install 1bdd && opm install notify
+    - name: Тесты + покрытие
+      run: opm run coverage
+    - name: Расчет версии проекта
+      run: |
+           echo "::set-env name=PROJECT_VERSION::$(cat src/core/Модули/КонстантыOpm.os | grep "ВерсияПродукта = " | sed 's|[^"]*"||' | sed -r 's/".+//' | tr -d '[:space:]')"
+    - name: Установка SonarScanner
+      uses: warchant/setup-sonar-scanner@v1
+    - name: Анализ в SonarQube
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: sonar-scanner
+          -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+          -Dsonar.host.url=https://sonar.openbsl.ru/
+          -Dsonar.projectVersion=${{ env.PROJECT_VERSION }}
