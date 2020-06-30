@@ -13,16 +13,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        oscript_version: [1.0.21, stable]
-        os: [macOS-latest, ubuntu-latest, windows-latest]
+        oscript_version: [stable]
+        os: [windows-latest]
+        # oscript_version: [1.0.21, stable]
+        # os: [macOS-latest, ubuntu-latest, windows-latest]
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.event.repository.full_name
     steps:
     - uses: actions/checkout@v2
     - name: Установка OneScript
-      uses: otymko/setup-onescript@v1.0
+      uses: otymko/setup-onescript@develop
       with:
         version: ${{ matrix.oscript_version }}
     - name: Установка зависимостей
-      run: opm install opm && opm install coverage && opm install 1testrunner && opm install asserts && opm install 1bdd && opm install notify && opm install
+      run: opm install coverage && opm install 1testrunner && opm install asserts && opm install 1bdd && opm install notify && opm install
+    - run: opm version
+      shell: cmd
     - name: Прогон тестов
       run: oscript tasks/test.os
